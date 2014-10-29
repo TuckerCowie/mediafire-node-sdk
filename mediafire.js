@@ -9,9 +9,12 @@
     /**
      * Initializes an application specific instance of MediaFire
      * @param {number} appId The supplied MediaFire application id
+     * @param {object=} options Properties to override the default API SDK properties
      * @constructor
      */
     function MediaFire(appId, options) {
+        options = options || {};
+        
         /**
          * Path to the uploader resources
          * @constant
