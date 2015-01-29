@@ -330,6 +330,9 @@
             filename: oFile.name,
             resumable: 'yes'
         };
+        
+        if (this._options.folderkey)
+            oParams.folder_key = this._options.folderkey;
 
         this._apiRequest('check', oParams, {
             load: function(evt) {
