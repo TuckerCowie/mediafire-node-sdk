@@ -29,7 +29,7 @@
          * @type {string}
          * @private
          */
-        this._API_VERSION = options.apiVersion || '1.1';
+        this._API_VERSION = options.apiVersion || '1.3';
 
         /**
          * Token version to use (default is 2)

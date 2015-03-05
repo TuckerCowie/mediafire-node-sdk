@@ -314,7 +314,7 @@
         oXHR.setRequestHeader('Content-Type', 'application/octet-stream');
         oXHR.setRequestHeader('X-Filename', oFile.name);
         oXHR.setRequestHeader('X-Filesize', oFile.size);
-        oXHR.setRequestHeader('X-Filetype', oFile.type);
+        oXHR.setRequestHeader('X-Filetype', oFile.type || 'application/octet-stream');
         oXHR.setRequestHeader('X-Filehash', oFile.hashes.full);
         oXHR.setRequestHeader('X-Unit-Id', iUnit);
         oXHR.setRequestHeader('X-Unit-Hash', oFile.hashes.units[iUnit]);
@@ -669,7 +669,6 @@
         var _resourcePath = '';
         var _initTime;
         var _oWorker;
-        var _bIsTransferSupported;
         var _oActive;
         var _aQueue = [];
 
@@ -679,6 +678,11 @@
                 case 'progress':
                     // Number of bytes hashed so far
                     _oActive.callback.progress(parseInt(evt.data.content, 10));
+                    // More units left to hash
+                    if (_oActive.currentUnit < _oActive.units) {
+                        // Okay to stream the next unit
+                        _streamUnit(_oActive.file, ++_oActive.currentUnit, _oActive.unitSize);
+                    }
                     break;
                 case 'success':
                     // Content contains the hashes {full: <file hash>, units: [<unit 1 hash>, ...]}
@@ -714,61 +718,30 @@
                 _createWorker();
             }
 
-            // Transfer array buffer or clone binary string or start array to web worker
-            if(data instanceof ArrayBuffer) {
-                // IE10 workaround, it does not allow the second parameter as an array, Chrome/FF require it.
-                try {
-                    _oWorker.postMessage(data, [data]);
-                }
-                catch(e) {
-                    _oWorker.postMessage(data, data);
-                }
-            } else {
-                _oWorker.postMessage(data);
-            }
+            _oWorker.postMessage(data);
         }
 
-        function _streamFile(oFile, iSize, iUnitSize) {
-            // Slice the file into unit sizes
-            var iOffset = 0;
+        function _streamUnit(oFile, iUnit, iUnitSize) {
+            // Slice the unit Blob out of the File oject
+            var iOffset = (iUnit - 1) * iUnitSize;
             var oBlob = oFile.slice(iOffset, iOffset + iUnitSize);
 
             // Create reader
             var oReader = new FileReader();
 
             // Read file in slices
-            var readUnit = function() {
-
-                // Check the readyState to determine status
-                oReader.onloadend = function(evt) {
-
-                    // Ready to send result to the hasher
-                    if (evt.target.readyState == FileReader.DONE) {
-
-                        // Send data to worker
-                        _oWorker.postMessage(evt.target.result);
-
-                        // Start reading next slice if available
-                        iOffset += iUnitSize;
-
-                        // More file to read
-                        if(iOffset < iSize) {
-                            oBlob = oFile.slice(iOffset, iOffset + iUnitSize);
-                            readUnit();
-                        }
-                    }
-                };
-
-                // Read blob as an array buffer if transfer is supported
-                if(Hasher.isTransferSupported) {
-                    oReader.readAsArrayBuffer(oBlob);
-                    // Cannot transfer objects, read as 0..255 range integer byte string
-                } else {
-                    oReader.readAsBinaryString(oBlob);
+            oReader.onloadend = function(evt) {
+                // Ready to send result to the hasher
+                if (evt.target.readyState == FileReader.DONE) {
+                    // Send data to worker
+                    _oWorker.postMessage(evt.target.result);
+                    // Reference should clear after this function, let's just make sure
+                    delete evt.target.result;
                 }
             };
 
-            readUnit();
+            // Read the Blob so we can send it to the web worker
+            oReader.readAsArrayBuffer(oBlob);
         }
 
         function _addFile(oFile, iUnitSize, oCallback) {
@@ -779,22 +752,22 @@
                 return;
             }
 
-            var iSize = oFile.size;
-            var iUnits = Math.ceil(iSize / iUnitSize);
+            var iUnits = Math.ceil(oFile.size / iUnitSize);
 
             // Set this file as the active task
             _oActive = {
                 file: oFile,
                 unitSize: iUnitSize,
                 units: iUnits,
-                callback: oCallback
+                callback: oCallback,
+                currentUnit: 1
             };
 
             // Send the number of units, the worker will realize we want to stream
             _messageWorker(iUnits);
 
-            // Start streaming immediately
-            _streamFile(oFile, iSize, iUnitSize);
+            // Start streaming the first unit immediately
+            _streamUnit(oFile, 1, iUnitSize);
         }
 
         return {
@@ -837,17 +810,6 @@
                 } else {
                     _createWorker();
                 }
-            },
-
-            isTransferSupported: function() {
-                // Only detect support once.
-                if(this._bIsTransferSupported === undefined) {
-                    // If buffer is cleared, transfer succeeded.
-                    var oBuffer = new ArrayBuffer(1);
-                    _oWorker.postMessage(oBuffer, [oBuffer]);
-                    this._bIsTransferSupported = !oBuffer.byteLength;
-                }
-                return this._bIsTransferSupported;
             },
 
             addFile: _addFile

@@ -31,6 +31,9 @@ onmessage = function (evt) {
         // Hash and save unit
         hashes.push(asmCrypto.SHA256.hex(evt.data));
 
+        // Remove reference
+        delete evt.data;
+
         // We are finished
         if(hashes.length >= units) {
             // Send 100% progress
