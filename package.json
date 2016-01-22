@@ -1,0 +1,29 @@
+{
+  "name": "mediafire-node-sdk",
+  "version": "0.0.0",
+  "description": "A convenient wrapper for MediaFire's REST API",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:TuckerCowie/mediafire-node-sdk.git"
+  },
+  "keywords": [
+    "MediaFire",
+    "SDK",
+    "API",
+    "Wrapper",
+    "File",
+    "Storage",
+    "Uploading",
+    "Downloading"
+  ],
+  "author": "Tucker Cowie <tucker.cowie@mediafire.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/TuckerCowie/mediafire-node-sdk/issues"
+  },
+  "homepage": "https://mediafire.com/"
+}
