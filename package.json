@@ -1,10 +1,28 @@
 {
   "name": "mediafire-node-sdk",
   "version": "0.0.0",
+  "private": true,
   "description": "A convenient wrapper for MediaFire's REST API",
-  "main": "index.js",
+  "main": "lib/index.js",
+  "jsnext:main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "clean": "rimraf lib dist coverage",
+    "lint": "eslint src test",
+    "test": "mocha --compilers js:babel/register --recursive",
+    "test:watch": "npm test -- --watch",
+    "test:cov": "babel-node $(npm bin)/isparta cover $(npm bin)/_mocha -- --recursive",
+    "check": "npm run lint && npm run test",
+    "build:lib": "babel src --out-dir lib",
+    "build:umd": "webpack src/index.js dist/mediafire.js --config webpack.config.development.js",
+    "build:umd:min": "webpack src/index.js dist/mediafire.min.js --config webpack.config.production.js",
+    "build": "npm run build:lib && npm run build:umd && npm run build:umd:min",
+    "preversion": "npm run clean && npm run check",
+    "version": "npm run build",
+    "postversion": "npm run clean && npm run docs:publish",
+    "prepublish": "npm run clean && npm run build",
+    "postinstall": "npm docs:clean && npm docs:build && open ./docs/index.html",
+    "docs:clean": "rimraf docs",
+    "docs:build": "esdoc -c esdoc.json"
   },
   "repository": {
     "type": "git",
@@ -25,5 +43,34 @@
   "bugs": {
     "url": "https://github.com/TuckerCowie/mediafire-node-sdk/issues"
   },
-  "homepage": "https://mediafire.com/"
+  "homepage": "https://mediafire.com/",
+  "devDependencies": {
+    "babel": "^5.5.8",
+    "babel-core": "^5.6.18",
+    "babel-eslint": "^4.1.0",
+    "babel-loader": "^5.1.4",
+    "esdoc": "^0.4.3",
+    "esdoc-es7-plugin": "0.0.3",
+    "eslint": "^1.7.1",
+    "eslint-config-rackt": "1.0.0",
+    "eslint-plugin-react": "^3.6.3",
+    "expect": "^1.8.0",
+    "gitbook-cli": "^0.3.4",
+    "isparta": "^3.0.3",
+    "mocha": "^2.2.5",
+    "rimraf": "^2.3.4",
+    "webpack": "^1.9.6"
+  },
+  "dependencies": {
+    "validate.js": "^0.9.0"
+  },
+  "npmName": "mediafire-node-sdk",
+  "npmFileMap": [
+    {
+      "basePath": "/dist/",
+      "files": [
+        "*.js"
+      ]
+    }
+  ]
 }
