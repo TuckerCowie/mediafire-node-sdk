@@ -5,7 +5,9 @@ import rootReducer from '../reducers';
 
 const createStoreWithMiddleware = applyMiddleware(
   promiseMiddleware(),
-  createLogger()
+  createLogger({
+    predicate: (getState) => getState().apiConfig.debug
+  })
 )(createStore);
 
 export default function configureStore(initialState) {

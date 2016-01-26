@@ -22,6 +22,7 @@ const defaultConfig = {
   apiVersion: '1.5',
   appId: null,
   appKey: null,
+  debug: false,
   responseFormat: 'json'
   tokenVersion: 1
 };
@@ -43,6 +44,16 @@ const validationConstraints = {
 /** MediaFire API Wrapper */
 class MediaFire {
 
+  /** Issue individual API calls
+   * @returns {promise}
+   * @argument {string} method - HTTP method to use
+   * @argument {string} url - Fully qualified url
+   * @argument {object} params - Key Value store of any HTTP query parameters to be sent with the request
+   */
+  static api(method, uri, params) {
+    return promisifyAction(getResource)(method, uri, params);
+  }
+
   /** Create a session store for API calls using this instance
    * @argument {string} email - User's Email Address
    * @argument {string} password - User's Email Password
@@ -54,9 +65,7 @@ class MediaFire {
      * @private
      */
     this._store = configureStore({
-      apiConfig: {
-        ...defaultConfig
-      }
+      apiConfig: defaultConfig
     });
 
     let error = Validate(config, validationConstraints.config);
@@ -66,16 +75,6 @@ class MediaFire {
 
   }
 
-  /** Create a session store for API calls using this instance
-   * @returns {promise}
-   * @argument {string} method - HTTP method to use
-   * @argument {string} url - Fully qualified url
-   * @argument {object} params - Key Value store of any HTTP query parameters to be sent with the request
-   */
-  api(method, uri, params) {
-    return promisifyAction(getResource)(method, uri, params);
-  }
-  
   /** Login to MediaFire to obtain a session token
    * @returns {promise}
    * @argument {string} email - User's Email Address
