@@ -1,178 +1,89 @@
-'use strict';
-
-import FormEncode from 'form-urlencoded';
-import {HTTP} from './http';
-import Session from './session';
-import {SHA1} from 'jshashes';
+import configureStore from './store.js';
+import promisifyAction from './lib/promisifyAction.js';
 import Validate from 'validate.js';
-import ValidationError from './validationError';
+import ValidationError from './lib/validationError.js';
 
-/**
- * @constant {string} API_URL
- */
-const API_URL = 'https://www.mediafire.com/api/';
+import {updateApiConfig} from './actions/apiConfig.js'
+import {getResource} from './actions/resource.js'
+import {login} from './actions/session.js'
 
 /**
  * Holds the default API settings for all instances
  * @private
- * @property {string} apiVersion - Platform API version to use
+ * @property {string} apiUrl - Platform URL
+ * @property {string} apiVersion - Platform API version
  * @property {string} appId - Individual Application Identifier
  * @property {string} appKey - Individual Application Key
  * @property {string} responseFormat - Content Return type (`json` or `xml`)
+ * @property {int} tokenVersion - MediaFire Token version
  */
 const defaultConfig = {
-  apiVersion: '1.4',
+  apiUrl: 'https://www.mediafire.com/api/',
+  apiVersion: '1.5',
   appId: null,
   appKey: null,
   responseFormat: 'json'
+  tokenVersion: 1
+};
+
+/** Validation constraints for making API calls
+ * @private
+ */
+const validationConstraints = {
+  config: {
+    appId: {
+      presence: true
+    },
+    appKey: {
+      presence: true
+    }
+  }
 };
 
 /** MediaFire API Wrapper */
 class MediaFire {
-  
-  /** Get the validation constraints for making API calls
-   * @private
-   * @returns {object}
-   */
-  _getConstraints() {
-    return {
-      config: {
-        appId: {
-          presence: true
-        },
-        appKey: {
-          presence: true
-        }
-      }
-    };
-  }
 
-  /** Login to MediaFire and create session for API calls
+  /** Create a session store for API calls using this instance
    * @argument {string} email - User's Email Address
    * @argument {string} password - User's Email Password
    * @argument {object} config - API Config
    */
-  constructor(email, password, config) {
+  constructor(config) {
 
-    let error = Validate(config, this._getConstraints().config);
-
-    if (error) throw new ValidationError(error);
-
-    /** Hold the API settings for this instance
+    /** State store for this instance
      * @private
      */
-    this._config = {
-      ...defaultConfig,
-      ...config
-    };
-
-    this.login({email, password});
-
-  }
-
-  /** Wrap the HTTP module
-   * @returns {promise}
-   * @argument {string} method - HTTP method to use (`GET` or `POST`)
-   * @argument {string} uri - API Path to call with a leading slash,
-   * not including the Platform API version number
-   */
-  api(method, uri, params) {
-    const configParams = Object.assign({}, params, {
-      response_format: this._config.responseFormat
+    this._store = configureStore({
+      apiConfig: {
+        ...defaultConfig
+      }
     });
-    return HTTP(API_URL + _config.apiVersion + uri)[method](params);
-  }
 
-  /** Login and set session token
-   * @returns {promise}
-   * @argument {object} credentials - User Email and Password to use
-   * when retieving a session token
-   */
-  login(credentials) {
-    
-    let error = Validate(credentials, this._getConstraints().config);
-
+    let error = Validate(config, validationConstraints.config);
     if (error) throw new ValidationError(error);
 
-    const url = '/user/get_session_token.php';
-
-    const params = {
-      application_id: _config.appId,
-      email: credentials.email,
-      password: credentials.password,
-      signature: new SHA1().digestFromString(credentials.email + credentials.password + _config.appId + _config.appKey)
-    };
-
-    const response = this.api('GET', url, params);
-
-    return response.then(data => {
-      /** Hold the Session for this instance
-       * @private
-       */
-      this._session = new Session(data.session_token);
-      return data;
-    });;
+    updateApiConfig(config);
 
   }
 
-  /** Get user information
+  /** Create a session store for API calls using this instance
    * @returns {promise}
+   * @argument {string} method - HTTP method to use
+   * @argument {string} url - Fully qualified url
+   * @argument {object} params - Key Value store of any HTTP query parameters to be sent with the request
    */
-  getUserInfo() {
-
-    const url = '/user/get_info.php';
-
-    const params = {
-      session_token: this._session.getToken(),
-    };
-
-    const response = this.api('POST', url, params);
-
-    return response;
-
+  api(method, uri, params) {
+    return promisifyAction(getResource)(method, uri, params);
   }
-
-  /** Retreive the contents of a folder
+  
+  /** Login to MediaFire to obtain a session token
    * @returns {promise}
-   * @argument {string} folderKey - Unique Folder Identifier  
-   * @argument {string} chunk
+   * @argument {string} email - User's Email Address
+   * @argument {string} password - User's Email Password
+   * @argument {boolean} autoRefresh - A flag to set whether or not the session token should be refreshed before it expires
    */
-  getFolder(folderKey, chunk) {
-
-    const url = '/folder/get_content.php';
-
-    const params = {
-      session_token: this._session.getToken(),
-      folder_key: folderKey,
-      content_type: 'folder',
-      chunk
-    };
-
-    const response = this.api('GET', url, params);
-
-    return response;
-
-  }
-
-  /** Retreive the links for a given file
-   * @returns {promise}
-   */
-  getFileLinks(fileId) {
-
-    const url = '/file/get_links.php';
-
-    // TODO: Make sure correct params are passed into function
-    const params = {
-      session_token: this._session.getToken(),
-      quick_key: fileId
-    };
-
-    const response = this.api('GET', url, params);
-
-    return response;
-
+  login(email, password, autoRefresh = true) {
+    return promisifyAction(login)({email, password}, autoRefresh);
   }
 
 }
-
-export default MediaFire;

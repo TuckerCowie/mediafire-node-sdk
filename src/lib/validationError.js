@@ -1,5 +1,8 @@
 'use strict';
 
+/**
+ * @private
+ */
 class ValidationError {
 
   constructor(message) {

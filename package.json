@@ -20,7 +20,7 @@
     "version": "npm run build",
     "postversion": "npm run clean && npm run docs:publish",
     "prepublish": "npm run clean && npm run build",
-    "postinstall": "npm docs:clean && npm docs:build && open ./docs/index.html",
+    "postinstall": "npm run docs:clean && npm run docs:build && open ./docs/index.html",
     "docs:clean": "rimraf docs",
     "docs:build": "esdoc -c esdoc.json"
   },
@@ -62,6 +62,9 @@
     "webpack": "^1.9.6"
   },
   "dependencies": {
+    "redux": "^3.0.6",
+    "redux-logger": "^2.4.0",
+    "redux-promise": "^0.5.1",
     "validate.js": "^0.9.0"
   },
   "npmName": "mediafire-node-sdk",
