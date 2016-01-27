@@ -55,16 +55,19 @@
     "eslint-config-rackt": "1.0.0",
     "eslint-plugin-react": "^3.6.3",
     "expect": "^1.8.0",
-    "gitbook-cli": "^0.3.4",
     "isparta": "^3.0.3",
     "mocha": "^2.2.5",
+    "redux-mock-store": "0.0.6",
     "rimraf": "^2.3.4",
     "webpack": "^1.9.6"
   },
   "dependencies": {
+    "form-urlencoded": "^1.2.0",
+    "isomorphic-fetch": "^2.2.1",
+    "jshashes": "^1.0.5",
     "redux": "^3.0.6",
     "redux-logger": "^2.4.0",
-    "redux-promise": "^0.5.1",
+    "redux-thunk": "^1.0.3",
     "validate.js": "^0.9.0"
   },
   "npmName": "mediafire-node-sdk",

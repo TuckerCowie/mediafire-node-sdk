@@ -82,7 +82,7 @@ class MediaFire {
    * @argument {boolean} autoRefresh - A flag to set whether or not the session token should be refreshed before it expires
    */
   login(email, password, autoRefresh = true) {
-    return promisifyAction(login)({email, password}, autoRefresh);
+    return promisifyAction(getLogin)({email, password}, autoRefresh);
   }
 
 }

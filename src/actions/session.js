@@ -1,47 +1,57 @@
 import {getResource} from './resource';
-import {SHA1} from 'jshashes';
+import Hashes from 'jshashes';
 
-export const MF_LOGIN = 'MF_LOGIN';
-export const MF_CREATE_LOGIN_INTERVAL = 'MF_CREATE_LOGIN_INTERVAL';
 export const MF_CLEAR_LOGIN_INTERVAL = 'MF_CLEAR_LOGIN_INTERVAL';
+export const MF_CREATE_LOGIN_INTERVAL = 'MF_CREATE_LOGIN_INTERVAL';
+export const MF_LOGIN = 'MF_LOGIN';
 
-function createLoginInterval(interval) {
+export function clearLoginInterval() {
+  return {
+    type: MF_CLEAR_LOGIN_INTERVAL
+  };
+}
+
+export function createLoginInterval(interval) {
   return {
     type: MF_CREATE_LOGIN_INTERVAL,
     payload: interval
   };
 }
 
-function clearLoginInterval(interval) {
+export function login(token) {
   return {
-    type: MF_CLEAR_LOGIN_INTERVAL
+    type: MF_LOGIN,
+    payload: token
   };
 }
 
-function getSessionToken(params) {
-  return dispatch(getResource('GET', '/user/get_session_token.php', params));
+export function getSessionToken(params) {
+  return dispatch => {
+    return dispatch(getResource('GET', '/user/get_session_token.php', params));
+  };
 }
 
-export function login(credentials, autoRefresh) {
-  return (dispatch, getState) => {    
+export function getLogin(credentials, autoRefresh) {
+  return (dispatch, getState) => {
 
     const {appId, appKey} = getState().apiConfig;
+
+    let SHA1 = new Hashes.SHA1;
 
     const params = {
       application_id: appId,
       email: credentials.email,
       password: credentials.password,
-      signature: new SHA1().digestFromString(credentials.email + credentials.password + appId + appKey)
+      signature: SHA1.hex(credentials.email + credentials.password + appId + appKey)
     };
 
-    const response = getSessionToken(params);
-
-    if (autoRefresh) {
-      dispatch(createLoginInterval(setInterval(getSessionToken, 570000, params)));
-    }
-
-    // Create the XHR and issue the receive action
-    return response;
+    return getSessionToken(params)
+      .then(action => {
+        if (autoRefresh) {
+          dispatch(createLoginInterval(setInterval(getSessionToken, 570000, params)));
+        }
+        return dispatch(login(action.payload.response.session_token));
+      });
 
   };
 }
