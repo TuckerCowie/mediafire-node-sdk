@@ -1,11 +1,10 @@
 import {combineReducers} fom 'redux';
-import apiConfig from './apiConfig.js';
-import resource from './resource.js';
+
+import config from './config.js';
 import session from './session.js';
 
 const rootReducer = combineReducers({
-  apiConfig,
-  lastRequestedResource: resource,
+  config,
   session
 });
 

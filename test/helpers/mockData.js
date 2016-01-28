@@ -1,9 +1,18 @@
+import Hashes from 'jshashes';
+
+let SHA1 = new Hashes.SHA1;
+
+const email = 'john.doe@email.com'
+const password = 'allyourbasearebelongtous'
+
 export const state = {
-  apiConfig: {
-    apiUrl: 'https://www.mediafire.com/api/',
-    apiVersion: '1.5',
-    response_Format: 'json',
-    token_version: 1,
+  config: {
+    url: 'https://www.mediafire.com/api/',
+    version: '1.5',
+    id: 0,
+    key: '15dsaf15dfa230fAkeK3y1234567890',
+    responseFormat: 'json',
+    tokenversion: 1,
     debug: true
   }
 };
@@ -12,9 +21,10 @@ export const request = {
   method: 'GET',
   uri: '/user/get_session_token.php',
   params: {
-    application_id: 1,
-    email: 'john.doe@email.com',
-    password: 'allyourbasearebelongtous',
+    application_id: state.config.id,
+    email,
+    password,
+    signature: SHA1.hex(email + password + state.config.id + state.config.key)
   }
 }
 

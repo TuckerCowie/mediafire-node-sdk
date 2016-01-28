@@ -1,41 +1,20 @@
 import configureStore from './store.js';
-import promisifyAction from './lib/promisifyAction.js';
+import fetch from 'isomorphic-fetch';
+import formUrlEncode from 'form-urlencoded';
+import {login} from './actions/session.js';
+import {updateConfig} from './actions/config.js';
 import Validate from 'validate.js';
-import ValidationError from './lib/validationError.js';
-
-import {updateApiConfig} from './actions/apiConfig.js'
-import {getResource} from './actions/resource.js'
-import {login} from './actions/session.js'
-
-/**
- * Holds the default API settings for all instances
- * @private
- * @property {string} apiUrl - Platform URL
- * @property {string} apiVersion - Platform API version
- * @property {string} appId - Individual Application Identifier
- * @property {string} appKey - Individual Application Key
- * @property {string} responseFormat - Content Return type (`json` or `xml`)
- * @property {int} tokenVersion - MediaFire Token version
- */
-const defaultConfig = {
-  apiUrl: 'https://www.mediafire.com/api/',
-  apiVersion: '1.5',
-  appId: null,
-  appKey: null,
-  debug: false,
-  responseFormat: 'json'
-  tokenVersion: 1
-};
+import ValidationError from './lib/ValidationError.js';
 
 /** Validation constraints for making API calls
  * @private
  */
 const validationConstraints = {
   config: {
-    appId: {
+    id: {
       presence: true
     },
-    appKey: {
+    key: {
       presence: true
     }
   }
@@ -50,8 +29,30 @@ class MediaFire {
    * @argument {string} url - Fully qualified url
    * @argument {object} params - Key Value store of any HTTP query parameters to be sent with the request
    */
-  static api(method, uri, params) {
-    return promisifyAction(getResource)(method, uri, params);
+  request(method, uri, params) {
+
+    const {
+      url,
+      version,
+      responseFormat,
+      tokenVersion
+    } = this._store.getState().config;
+
+    const {
+      token
+    } = this._store.getState().session;
+
+    const body = {
+      session_token: token,
+      response_format: responseFormat,
+      token_version: tokenVersion,
+      ...params
+    };
+
+    const request = new Request(url + version + uri);
+
+    return fetch(request, {method: method.toUpperCase(), body: formUrlEncode(body)});
+
   }
 
   /** Create a session store for API calls using this instance
@@ -59,30 +60,18 @@ class MediaFire {
    * @argument {string} password - User's Email Password
    * @argument {object} config - API Config
    */
-  constructor(config) {
+  constructor(email, password, config) {
 
     /** State store for this instance
      * @private
      */
-    this._store = configureStore({
-      apiConfig: defaultConfig
-    });
+    this._store = configureStore();
 
-    let error = Validate(config, validationConstraints.config);
+    const error = Validate(config, validationConstraints.config);
     if (error) throw new ValidationError(error);
 
-    updateApiConfig(config);
+    updateConfig(config);
 
-  }
-
-  /** Login to MediaFire to obtain a session token
-   * @returns {promise}
-   * @argument {string} email - User's Email Address
-   * @argument {string} password - User's Email Password
-   * @argument {boolean} autoRefresh - A flag to set whether or not the session token should be refreshed before it expires
-   */
-  login(email, password, autoRefresh = true) {
-    return promisifyAction(getLogin)({email, password}, autoRefresh);
   }
 
 }

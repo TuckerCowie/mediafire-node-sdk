@@ -1,12 +1,11 @@
 import { createStore, applyMiddleware } from 'redux';
 import createLogger from 'redux-logger';
-import thunk from 'redux-thunk';
+import reduxPromiseMiddleware from 'redux-promise-middleware'
 import rootReducer from '../reducers';
 
 const createStoreWithMiddleware = applyMiddleware(
-  thunk,
   createLogger({
-    predicate: (getState) => getState().apiConfig.debug
+    predicate: (getState) => getState().config.debug
   })
 )(createStore);
 
