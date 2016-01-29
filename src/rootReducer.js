@@ -1,13 +1,13 @@
 import {combineReducers} from 'redux';
 
 import config from './config/reducer.js';
-import resourcesByRequest from './requests/reducer.js';
-import session from './session/reducer.js';
+import resources from './resources/reducer.js';
+import login from './login/reducer.js';
 
 const rootReducer = combineReducers({
   config,
-  resourcesByRequest,
-  session
+  resources,
+  login
 });
 
 export default rootReducer;

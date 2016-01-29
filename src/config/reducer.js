@@ -1,7 +1,6 @@
 import {MF_CONFIG_UPDATE} from './actions';
 
 const initialState = {
-  debug: false,
   id: null,
   key: null,
   responseFormat: 'json',
