@@ -1,6 +1,4 @@
-'use strict';
-
-import {MF_LOGIN, MF_LOGIN_INTERVAL_CLEAR, MF_LOGIN_INTERVAL_CREATE} from '../actions/session';
+import {MF_LOGIN, MF_LOGIN_INTERVAL_CLEAR, MF_LOGIN_INTERVAL_CREATE} from './actions';
 
 const initialState = {
   token: null,
@@ -12,14 +10,14 @@ function session(state = initialState, action) {
     case MF_LOGIN:
       return {
         ...state,
-        token: action.payload;
+        token: action.payload
       };
     case MF_LOGIN_INTERVAL_CREATE:
       return {
         ...state,
         interval: action.payload
       };
-    case MF_LOGIN_INTERVAL_CLEAR:
+    case MF_LOGIN_INTERVAL_CLEAR:
       state.interval();
       return {
         ...state,
