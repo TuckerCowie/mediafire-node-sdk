@@ -2,6 +2,8 @@ import 'babel-core/polyfill';
 
 import configureStore from './store.js';
 import {fetchRequestIfNeeded, invalidateRequest} from './requests/actions.js';
+import {login, createLoginInterval} from './login/actions.js';
+import {SHA1} from 'jshashes';
 import {updateConfig} from './config/actions.js';
 import Validate from 'validate.js';
 import ValidationError from './lib/ValidationError.js';
@@ -22,16 +24,15 @@ class MediaFire {
 
   /**
    * Creates a stateful store of API calls using a given user account. Once invoked, the initial
-   * state will be constructed and a login request will be dispatched to obtain the first session
-   * token. This function is synchronous in order to ensure any additional calls made to the API
-   * are invoked with the correct config and a valid session token.
+   * state will be constructed with basic config.
    *
-   * @argument {string} email - User's Email Address
-   * @argument {string} password - User's Email Password
-   * @argument {object} config - API Config
+   * @argument {object} config - Optional overrides for the API Config
+   *
+   * @example
+   * let MF = new MediaFire({id: 12345, key: 'y0ur4pplicationK3y'});
    *
    */
-  constructor(email, password, config) {
+  constructor(config) {
 
     const error = Validate(config, validationConstraints.config);
     if (error) {
@@ -46,48 +47,82 @@ class MediaFire {
 
     this._store.dispatch(updateConfig(config));
 
-    this._login(email, password);
-
   }
 
   /**
-   * Login to MediaFire and obtain a session token.
-   * @private
+   * Login to MediaFire and obtain a session token. This function also sets the session token into
+   * the instance's state store so it can be used later for other requests. Calling this function
+   * is required after creating any new instance of MediaFire. Without calling it, you will have to
+   * manually pass any required parameters needed into the params object of MediaFire#request.
    *
    * @argument {string} email - Application User's MediaFire Login Email
    * @argument {string} password - Application User's MediaFire Login Password
+   * @argument {bool} stayLoggedIn - Determines if the user wishes to stay logged in indefinitely
    *
-   * @returns {object} Response body
+   * @returns {promise} A promise that resolves with the server's JSON response
+   *
+   * @example
+   * MF.login('email', 'password').then(console.log);
+   * @see http://www.mediafire.com/developers/core_api/1.5/user/#get_session_token
+   *
    */
-  _login(email, password) {
-    const method = 'post';
+  login(email, password, stayLoggedIn) {
+    const method = 'get';
     const uri = '/user/get_session_token.php';
+
+    const {
+      id,
+      key
+    } = this._store.getState().config;
+
     const params = {
       email,
-      password
+      password,
+      signature: new SHA1().hex(email + password + id + key)
     };
 
-    this._store.dispatch(fetchRequestIfNeeded(method, uri, params)).then(action => {
-      console.log(action);
+    return new Promise((resolve, reject) => {
+      this._store.dispatch(fetchRequestIfNeeded(method, uri, params))
+        .then(response => {
+          response.json().then(data => {
+            this._store.dispatch(login(data.response.session_token, stayLoggedIn));
+            resolve(data);
+            if (stayLoggedIn) {
+              this._store.dispatch(createLoginInterval(5000));
+            }
+          });
+        })
+        .catch(reject);
     });
 
   }
 
-  /** 
-   * Issue individual API calls to MediaFire. Under the hood, requests are cached in memory by 
-   * uri by method. If a duplicate request is made to a previously requested resource and that  
-   * resource is still valid, a network request will be avoided.
+  /**
+   * Issue individual API calls to MediaFire. Under the hood, resources are cached in memory by
+   * uri by method per instance. Each on of these entities is called a resource. If a duplicate
+   * request is made to a previously requested resource and that resource is still valid, a new
+   * network request will be avoided. If you need to override the cached version of a resource, you
+   * force a new request by passing `false` as the fourth argument.
    *
    * @argument {string} method - HTTP method to use; will get converted to uppercase
    * @argument {string} uri - MediaFire Platform API Endpoint; e.g. '/user/get_session_token.php'
    * @argument {object} params - Key Value store of any optional HTTP query parameters
    * @argument {bool} force - Decide whether or not to forcefully override the current in memory
-   * version of requested resource. If true, an MF_RESOURCE_INVALIDATE action will be dispatched
-   * with the corresponding request uri and method before the network fetch is made to invalidate
-   * that resource. This ensures that a new network request is sent even if a resource is cached.
+   * resource by issuing a new request. If true, an MF_RESOURCE_INVALIDATE action will be dispatched
+   * with the corresponding resource uri and method before the network request is made. This ensures
+   * that a new network request is sent even if a resource is cached locally.
    *
-   * @returns {promise} A promise that resolves with the body of the response from the requested
-   * resource. If the promise cannot resolve and catches an error, the entire error will bubble up.
+   * @returns {promise} A promise that resolves with a Response object containing the response
+   * data from the request.
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/Response
+   *
+   * Currently, all responses from the server – including server generated errors – will resolve.
+   *
+   * @example
+   * MF.request('get', '/user/get_info.php').then(console.log);
+   * MF.request('post', '/folder/create.php', { foldername: 'New Folder' }).then(console.log);
+   * MF.request('get', '/folder/get_info.php', { folder_key: '123abc' }, true).then(console.log);
+   *
    */
   request(method, uri, params, force = false) {
     if (force) {
@@ -95,15 +130,8 @@ class MediaFire {
     }
     return new Promise((resolve, reject) => {
       this._store.dispatch(fetchRequestIfNeeded(method, uri, params))
-        .then(() => {
-          const resource = this._store.getState().resourcesByRequest[uri][method];
-          console.log(`Got requested resource: ${uri}`, resource);
-          resolve(resource);
-        })
-        .catch(error => {
-          console.log(`Could not fetch resource: ${uri}`, error);
-          reject(error);
-        });
+        .then(resolve)
+        .catch(reject);
     });
   }
 
