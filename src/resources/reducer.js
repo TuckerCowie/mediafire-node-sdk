@@ -30,7 +30,7 @@ function request(state = initialRequest, action) {
         invalid: false,
         error: false,
         response: action.payload.response,
-        lastUpdated: action.payload.recieved
+        lastUpdated: action.payload.received
       };
     case MF_RESOURCE_RECEIVE_ERROR:
       return {
@@ -38,7 +38,7 @@ function request(state = initialRequest, action) {
         loading: false,
         invalid: false,
         error: action.payload.error,
-        lastUpdated: action.payload.recieved
+        lastUpdated: action.payload.received
       };
     default:
       return state;

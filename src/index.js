@@ -1,7 +1,7 @@
 import 'babel-core/polyfill';
 
 import configureStore from './store.js';
-import {fetchRequestIfNeeded, invalidateRequest} from './requests/actions.js';
+import {fetchRequestIfNeeded, invalidateRequest} from './resources/actions.js';
 import {login, createLoginInterval} from './login/actions.js';
 import {SHA1} from 'jshashes';
 import {updateConfig} from './config/actions.js';

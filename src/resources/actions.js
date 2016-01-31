@@ -16,7 +16,7 @@ export function invalidateResource(method, uri) {
   };
 }
 
-function requestResource(method, uri, params) {
+export function requestResource(method, uri, params) {
   return {
     type: MF_RESOURCE_REQUEST,
     payload: {
@@ -27,7 +27,7 @@ function requestResource(method, uri, params) {
   };
 }
 
-function receiveResource(method, uri, response) {
+export function receiveResource(method, uri, response) {
   return {
     type: MF_RESOURCE_RECEIVE,
     payload: {
@@ -39,7 +39,7 @@ function receiveResource(method, uri, response) {
   };
 }
 
-function receiveResourceError(method, uri, error) {
+export function receiveResourceError(method, uri, error) {
   return {
     type: MF_RESOURCE_RECEIVE_ERROR,
     payload: {

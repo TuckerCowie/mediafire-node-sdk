@@ -1,7 +1,5 @@
 import expect from 'expect';
 import MediaFire from '../src/';
-import {MF_RESOURCE_REQUEST, requestResource} from '../src/requests/actions.js'
-import sinon from 'sinon';
 import ValidationError from '../src/lib/ValidationError';
 
 describe('MediaFire', () => {
@@ -20,38 +18,10 @@ describe('MediaFire', () => {
       }).toThrow(ValidationError);
     });
 
-    it('should initialize redux store', () => {
-      const Api = new MediaFire('email', 'password', {id: 1, key: 'happy'});
+    it('should initialize redux store with a required Id and Key', () => {
+      const Api = new MediaFire({id: 1, key: 'happy'});
       expect(Api._store).toExist();
       expect(Api._store.getState()).toBeA('object');
-    });
-
-  });
-
-  describe('_login', () => {
-
-    let Api;
-
-    beforeEach(() => {
-      Api = new MediaFire('email', 'password', {id: 1, key: 'happy'});
-    });
-
-    it('should return an object', () => {
-      expect(Api._login('email', 'password')).toBeA('object');
-    });
-
-  });
-
-  describe('request', () => {
-
-    let Api;
-
-    beforeEach(() => {
-      Api = new MediaFire('email', 'password', {id: 1, key: 'happy'});
-    });
-
-    it('should return an object', () => {
-      expect(Api.request('get', '/url', {fakeParams: true})).toBeA('object');
     });
 
   });
