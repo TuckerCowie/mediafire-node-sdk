@@ -90,9 +90,7 @@ export function fetchResource(method, uri, params) {
     const request = new Request(`${url + version + uri}?${query}`, config);
 
     return fetch(request, config)
-      .then(response => {
-        return dispatch(receiveResource(method, uri, response)).payload.response;
-      })
+      .then(response => dispatch(receiveResource(method, uri, response)).payload.response)
       .catch(error => {
         dispatch(receiveResourceError(method, uri, error));
       });

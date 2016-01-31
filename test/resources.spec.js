@@ -73,13 +73,13 @@ describe('Resources', () => {
           .toEqual(undefined);
         expect(actions.getCurrentResource({
           '/user/get_session_token.php': {
-            'post': {}
+            post: {}
           }
         }, mockMethod, mockUri))
           .toEqual(undefined);
         expect(actions.getCurrentResource({
           '/user/get_info.php': {
-            'get': {}
+            get: {}
           }
         }, mockMethod, mockUri))
           .toEqual(undefined);

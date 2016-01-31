@@ -1,7 +1,7 @@
 import 'babel-core/polyfill';
 
 import configureStore from './store.js';
-import {fetchRequestIfNeeded, invalidateRequest} from './resources/actions.js';
+import {fetchResourceIfNeeded, invalidateResource} from './resources/actions.js';
 import {login, createLoginInterval} from './login/actions.js';
 import {SHA1} from 'jshashes';
 import {updateConfig} from './config/actions.js';
@@ -82,7 +82,7 @@ class MediaFire {
     };
 
     return new Promise((resolve, reject) => {
-      this._store.dispatch(fetchRequestIfNeeded(method, uri, params))
+      this._store.dispatch(fetchResourceIfNeeded(method, uri, params))
         .then(response => {
           response.json().then(data => {
             this._store.dispatch(login(data.response.session_token, stayLoggedIn));
@@ -126,10 +126,10 @@ class MediaFire {
    */
   request(method, uri, params, force = false) {
     if (force) {
-      this._store.dispatch(invalidateRequest(method, uri));
+      this._store.dispatch(invalidateResource(method, uri));
     }
     return new Promise((resolve, reject) => {
-      this._store.dispatch(fetchRequestIfNeeded(method, uri, params))
+      this._store.dispatch(fetchResourceIfNeeded(method, uri, params))
         .then(resolve)
         .catch(reject);
     });
