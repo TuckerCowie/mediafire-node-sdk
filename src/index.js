@@ -32,7 +32,7 @@ class MediaFire {
    * let MF = new MediaFire({id: 12345, key: 'y0ur4pplicationK3y'});
    *
    */
-  constructor(config ={}) {
+  constructor(config = {}) {
 
     const error = Validate(config, validationConstraints.config);
     if (error) {
@@ -46,6 +46,19 @@ class MediaFire {
     this._store = configureStore();
 
     this._store.dispatch(updateConfig(config));
+
+    this.user = {
+      getSettings: () => this.request('get', '/user/get_settings.php'),
+      getProfile: () => Promise.all([
+          this.request('get', '/user/get_avatar.php'),
+          this.request('get', '/user/get_info.php')
+        ]).then(data => {
+          return {
+            avatar: data[0].response.avatar,
+            ...data[1].response.user_info
+          }
+        })
+    }
 
   }
 
