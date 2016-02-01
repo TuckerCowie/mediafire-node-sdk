@@ -1,0 +1,83 @@
+{
+  "name": "mediafire-node-sdk",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A convenient wrapper for MediaFire's REST API",
+  "main": "lib/index.js",
+  "jsnext:main": "src/index.js",
+  "scripts": {
+    "clean": "rimraf lib dist coverage docs",
+    "lint": "eslint src test",
+    "test": "mocha --compilers js:babel/register --recursive",
+    "test:watch": "npm test -- --watch",
+    "test:cov": "babel-node $(npm bin)/isparta cover $(npm bin)/_mocha -- --recursive",
+    "check": "npm run lint && npm run test",
+    "build:lib": "babel src --out-dir lib",
+    "build:umd": "webpack src/index.js dist/mediafire.js --config webpack.config.development.js",
+    "build:umd:min": "webpack src/index.js dist/mediafire.min.js --config webpack.config.production.js",
+    "build": "npm run build:lib && npm run build:umd && npm run build:umd:min",
+    "prepublish": "npm run clean && npm run build",
+    "docs:clean": "rimraf docs",
+    "docs:build": "esdoc -c esdoc.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:TuckerCowie/mediafire-node-sdk.git"
+  },
+  "keywords": [
+    "MediaFire",
+    "SDK",
+    "API",
+    "Wrapper",
+    "File",
+    "Storage",
+    "Uploading",
+    "Downloading"
+  ],
+  "author": "Tucker Cowie <tucker.cowie@mediafire.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/TuckerCowie/mediafire-node-sdk/issues"
+  },
+  "homepage": "https://mediafire.com/",
+  "devDependencies": {
+    "babel": "^5.5.8",
+    "babel-core": "^5.6.18",
+    "babel-eslint": "^4.1.0",
+    "babel-loader": "^5.1.4",
+    "esdoc": "^0.4.3",
+    "esdoc-es7-plugin": "0.0.3",
+    "eslint": "^1.7.1",
+    "eslint-config-airbnb": "^4.0.0",
+    "eslint-config-rackt": "1.0.0",
+    "eslint-import-resolver-webpack": "^0.1.4",
+    "eslint-plugin-import": "^0.12.1",
+    "eslint-plugin-react": "^3.6.3",
+    "expect": "^1.13.4",
+    "isparta": "^3.0.3",
+    "mocha": "^2.2.5",
+    "nock": "^7.0.2",
+    "redux-mock-store": "0.0.6",
+    "rimraf": "^2.3.4",
+    "sinon": "^1.17.3",
+    "webpack": "^1.9.6"
+  },
+  "dependencies": {
+    "form-urlencoded": "^1.2.0",
+    "isomorphic-fetch": "^2.2.1",
+    "jshashes": "^1.0.5",
+    "redux": "^3.0.6",
+    "redux-logger": "^2.4.0",
+    "redux-thunk": "^1.0.3",
+    "validate.js": "^0.9.0"
+  },
+  "npmName": "mediafire-node-sdk",
+  "npmFileMap": [
+    {
+      "basePath": "/dist/",
+      "files": [
+        "*.js"
+      ]
+    }
+  ]
+}
