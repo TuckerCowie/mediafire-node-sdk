@@ -58,6 +58,7 @@ class MediaFire {
    * @argument {string} email - Application User's MediaFire Login Email
    * @argument {string} password - Application User's MediaFire Login Password
    * @argument {bool} stayLoggedIn - Determines if the user wishes to stay logged in indefinitely
+   * @argument {number} renewInterval - Set the session token renew interval in milliseconds
    *
    * @returns {promise} A promise that resolves with the server's JSON response
    *
@@ -66,7 +67,7 @@ class MediaFire {
    * @see http://www.mediafire.com/developers/core_api/1.5/user/#get_session_token
    *
    */
-  login(email, password, stayLoggedIn) {
+  login(email, password, stayLoggedIn, renewInterval) {
     const method = 'get';
     const uri = '/user/get_session_token.php';
 
@@ -84,11 +85,8 @@ class MediaFire {
     return new Promise((resolve, reject) => {
       this._store.dispatch(fetchResourceIfNeeded(method, uri, params))
         .then(response => {
-          this._store.dispatch(login(response.response.session_token, stayLoggedIn));
+          this._store.dispatch(login(response.response.session_token, stayLoggedIn, renewInterval));
           resolve(response);
-          if (stayLoggedIn) {
-            this._store.dispatch(createLoginInterval());
-          }
         })
         .catch(reject);
     });
