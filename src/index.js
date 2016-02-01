@@ -48,7 +48,29 @@ class MediaFire {
     this._store.dispatch(updateConfig(config));
 
     this.user = {
+      /**
+       * Get a collection of the session user's account settings and vitals
+       *
+       * @returns {promise} A promise that resolves with the server's JSON response
+       * @see http://www.mediafire.com/developers/core_api/1.5/user/#get_settings
+       *
+       * @example
+       * MF.user.getSettings().then(console.log);
+       *
+       */
       getSettings: () => this.request('get', '/user/get_settings.php'),
+
+      /**
+       * Get a ist of the user's personal information and account vitals including their avatar
+       *
+       * @returns {promise} A promise that resolves with the server's JSON response
+       * @see http://www.mediafire.com/developers/core_api/1.5/user/#get_avatar
+       * @see http://www.mediafire.com/developers/core_api/1.5/user/#get_info
+       *
+       * @example
+       * MF.user.getInfo().then(console.log);
+       *
+       */
       getProfile: () => Promise.all([
           this.request('get', '/user/get_avatar.php'),
           this.request('get', '/user/get_info.php')
