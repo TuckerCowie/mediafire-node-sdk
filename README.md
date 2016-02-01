@@ -8,7 +8,7 @@ Every month, more than 150 million people use MediaFire to quickly and securely 
 
 > Platform API Documentation and other resources are available on [MediaFire's Developers website](http://www.mediafire.com/developers/)
 
-[![Circle CI](https://circleci.com/gh/TuckerCowie/mediafire-node-sdk/tree/master.svg?style=svg)](https://circleci.com/gh/TuckerCowie/mediafire-node-sdk/tree/master)
+[![Circle CI](https://circleci.com/gh/TuckerCowie/mediafire-node-sdk/tree/develop.svg?style=svg)](https://circleci.com/gh/TuckerCowie/mediafire-node-sdk/tree/master)
 
 ## Installation
 
