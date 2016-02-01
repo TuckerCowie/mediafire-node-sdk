@@ -31,7 +31,6 @@ export function receiveResource(method, uri, response) {
   return {
     type: MF_RESOURCE_RECEIVE,
     payload: {
-      received: Date.now(),
       method,
       uri,
       response
@@ -43,7 +42,6 @@ export function receiveResourceError(method, uri, error) {
   return {
     type: MF_RESOURCE_RECEIVE_ERROR,
     payload: {
-      received: Date.now(),
       method,
       uri,
       error
@@ -59,12 +57,10 @@ export function fetchResource(method, uri, params) {
     const state = getState();
 
     const {
-      url,
-      version,
       id,
       key,
-      responseFormat,
-      tokenVersion
+      url,
+      version
     } = state.config;
 
     const {
@@ -74,10 +70,10 @@ export function fetchResource(method, uri, params) {
     const query = formUrlEncode({
       application_id: id,
       application_key: key,
-      response_format: responseFormat,
       session_token: token,
-      token_version: tokenVersion,
-      ...params
+      ...params,
+      token_version: 1, // Users should only use version 1
+      response_format: 'json', // Users should only receive JSON
     });
 
     const config = {
@@ -87,13 +83,11 @@ export function fetchResource(method, uri, params) {
     /** @TODO Ensure that for future versions of platform, API use request.body instead of query
      * parameters. This will allow safer transport of our user's private credentials.
      */
-    const request = new Request(`${url + version + uri}?${query}`, config);
 
-    return fetch(request, config)
-      .then(response => dispatch(receiveResource(method, uri, response)).payload.response)
-      .catch(error => {
-        dispatch(receiveResourceError(method, uri, error));
-      });
+    return fetch(`${url + version + uri}?${query}`, config)
+      .then(response => response.json())
+      .then(json => dispatch(receiveResource(method, uri, json)).payload.response)
+      .catch(error => dispatch(receiveResourceError(method, uri, error)));
   };
 }
 

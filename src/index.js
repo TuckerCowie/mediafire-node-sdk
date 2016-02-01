@@ -32,7 +32,7 @@ class MediaFire {
    * let MF = new MediaFire({id: 12345, key: 'y0ur4pplicationK3y'});
    *
    */
-  constructor(config) {
+  constructor(config ={}) {
 
     const error = Validate(config, validationConstraints.config);
     if (error) {
@@ -84,13 +84,11 @@ class MediaFire {
     return new Promise((resolve, reject) => {
       this._store.dispatch(fetchResourceIfNeeded(method, uri, params))
         .then(response => {
-          response.json().then(data => {
-            this._store.dispatch(login(data.response.session_token, stayLoggedIn));
-            resolve(data);
-            if (stayLoggedIn) {
-              this._store.dispatch(createLoginInterval(5000));
-            }
-          });
+          this._store.dispatch(login(response.response.session_token, stayLoggedIn));
+          resolve(response);
+          if (stayLoggedIn) {
+            this._store.dispatch(createLoginInterval());
+          }
         })
         .catch(reject);
     });
@@ -112,9 +110,9 @@ class MediaFire {
    * with the corresponding resource uri and method before the network request is made. This ensures
    * that a new network request is sent even if a resource is cached locally.
    *
-   * @returns {promise} A promise that resolves with a Response object containing the response
+   * @returns {promise} A promise that resolves with a JSON object containing the response
    * data from the request.
-   * @see https://developer.mozilla.org/en-US/docs/Web/API/Response
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/Body/json
    *
    * Currently, all responses from the server – including server generated errors – will resolve.
    *

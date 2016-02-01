@@ -3,8 +3,6 @@ import {MF_CONFIG_UPDATE} from './actions';
 const initialState = {
   id: null,
   key: null,
-  responseFormat: 'json',
-  tokenVersion: 1,
   url: 'https://www.mediafire.com/api/',
   version: '1.5'
 };

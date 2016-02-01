@@ -1,6 +1,11 @@
+import configureMockStore from 'redux-mock-store'
 import expect from 'expect';
+import formUrlEncode from 'form-urlencoded';
+import MediaFire from '../src';
+import Nock from 'nock';
 import * as actions from '../src/resources/actions';
 import reducer from '../src/resources/reducer';
+import thunk from 'redux-thunk';
 
 describe('Resources', () => {
 
@@ -10,7 +15,7 @@ describe('Resources', () => {
   const mockResponse = new Response();
   const mockError = {name: 'Error', message: 'Something bad happened'};
 
-  describe('Actions', () => {
+  describe('Action', () => {
     describe('invalidateResource', () => {
       it('should make invalidate resource action', () => {
         expect(actions.invalidateResource(mockMethod, mockUri))
@@ -42,7 +47,6 @@ describe('Resources', () => {
           .toEqual({
             type: actions.MF_RESOURCE_RECEIVE,
             payload: {
-              received: Date.now(),
               method: mockMethod,
               uri: mockUri,
               response: mockResponse
@@ -56,7 +60,6 @@ describe('Resources', () => {
           .toEqual({
             type: actions.MF_RESOURCE_RECEIVE_ERROR,
             payload: {
-              received: Date.now(),
               method: mockMethod,
               uri: mockUri,
               error: mockError
@@ -66,7 +69,82 @@ describe('Resources', () => {
     });
   });
 
-  describe('Helpers', () => {
+  describe('Async Action', () => {
+
+    const middleWares = [thunk];
+    const mockStore = configureMockStore(middleWares);
+
+    describe('fetchResource', () => {
+      afterEach(() => {
+        Nock.cleanAll();
+      });
+      const mockBody = {winning: true};
+      it('should dispatch request resource action and receive resource action on success', done => {
+        const Api = new MediaFire({id: 12345, key: '12345abcde'});
+        const state = Api._store.getState();
+        const mockResponse = {session_token: 'asdfghjkl'};
+        Nock('https://www.mediafire.com/')
+          [mockMethod](`/api/${state.config.version}${mockUri}`)
+          .query(true)
+          .reply(200, mockResponse);
+        const expectedActions = [
+          {
+            type: actions.MF_RESOURCE_REQUEST,
+            payload: {
+              params: mockParams,
+              method: mockMethod,
+              uri: mockUri
+            }
+          },
+          {
+            type: actions.MF_RESOURCE_RECEIVE,
+            payload: {
+              method: mockMethod,
+              uri: mockUri,
+              response: mockResponse
+            }
+          }
+        ];
+        Api._store = mockStore(state, expectedActions, done);
+        Api._store.dispatch(actions.fetchResource(mockMethod, mockUri, mockParams));
+      });
+      /** @TODO: Correctly mock error case */
+      it.skip('should dispatch request resource action and receive resource error action on fail',
+        done => {
+          const Api = new MediaFire({id: 12345, key: '12345abcde'});
+          const state = Api._store.getState();
+          const mockResponse = {session_token: 'asdfghjkl'};
+          Nock('https://www.mediafire.com/')
+            [mockMethod](`/api/${state.config.version}${mockUri}`)
+            .query(true)
+            .replyWithError(mockError);
+          const expectedActions = [
+            {
+              type: actions.MF_RESOURCE_REQUEST,
+              payload: {
+                params: mockParams,
+                method: mockMethod,
+                uri: mockUri
+              }
+            },
+            {
+              type: actions.MF_RESOURCE_RECEIVE_ERROR,
+              payload: {
+                method: mockMethod,
+                uri: mockUri,
+                error: {}
+              }
+            }
+          ];
+          Api._store = mockStore(state, expectedActions, done);
+          Api._store.dispatch(actions.fetchResource(mockMethod, mockUri, mockParams));
+        }
+      );
+    });
+
+  });
+
+  describe('Helper', () => {
     describe('getCurrentResource', () => {
       it('should return undefined if no resource found', () => {
         expect(actions.getCurrentResource({}, mockMethod, mockUri))
