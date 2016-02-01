@@ -1,4 +1,4 @@
-import {MF_LOGIN, MF_LOGIN_CREATE_INTERVAL} from './actions';
+import {MF_LOGIN, MF_LOGIN_RENEW} from './actions';
 
 const initialState = {
   token: null,
@@ -8,15 +8,10 @@ const initialState = {
 function login(state = initialState, action) {
   switch (action.type) {
     case MF_LOGIN:
+    case MF_LOGIN_RENEW:
       return {
         ...state,
-        token: action.payload.token,
-        stayLoggedIn: action.payload.stayLoggedIn
-      };
-    case MF_LOGIN_CREATE_INTERVAL:
-      return {
-        ...state,
-        interval: action.payload
+        ...action.payload
       };
     default:
       return state;

@@ -1,32 +1,37 @@
 import {fetchResource} from '../resources/actions';
 
 export const MF_LOGIN = 'MF_LOGIN';
-export const MF_LOGIN_CREATE_INTERVAL = 'MF_LOGIN_CREATE_INTERVAL';
+export const MF_LOGIN_RENEW = 'MF_LOGIN_RENEW';
 
-function renewLogin() {
+export function createLoginTimeout(dispatcher, interval, actionCreator) {
+  return setTimeout(dispatcher, interval, actionCreator);
+}
+
+export function renewLogin(token, interval = 57000) {
   return dispatch => {
-    dispatch(fetchResource('get', '/user/renew_session_token.php'))
-      .then(response => {
-        response.json().then(data => {
-          dispatch(login(data.response.session_token, true));
-        });
-      });
+    createLoginTimeout(dispatch, interval, renewLogin(token, interval));
+    return dispatch({
+      type: MF_LOGIN_RENEW,
+      payload: {
+        token,
+        interval,
+        stayLoggedIn: true
+      }
+    });
   };
 }
 
-export function createLoginInterval(interval = 57000) {
-  return (dispatch) => dispatch({
-    type: MF_LOGIN_CREATE_INTERVAL,
-    payload: setTimeout(dispatch, interval, renewLogin())
-  });
-}
-
-export function login(token, stayLoggedIn) {
-  return {
-    type: MF_LOGIN,
-    payload: {
-      token,
-      stayLoggedIn
+export function login(token, stayLoggedIn = false, interval) {
+  return dispatch => {
+    if (stayLoggedIn) {
+      dispatch(renewLogin(token, interval));
     }
-  };
+    return dispatch({
+      type: MF_LOGIN,
+      payload: {
+        token,
+        stayLoggedIn
+      }
+    });
+  }
 }
