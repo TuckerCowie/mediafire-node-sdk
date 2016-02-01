@@ -16,11 +16,8 @@
     "build:umd": "webpack src/index.js dist/mediafire.js --config webpack.config.development.js",
     "build:umd:min": "webpack src/index.js dist/mediafire.min.js --config webpack.config.production.js",
     "build": "npm run build:lib && npm run build:umd && npm run build:umd:min",
-    "preversion": "npm run clean && npm run check",
-    "version": "npm run build",
-    "postversion": "npm run clean && npm run docs:publish",
     "prepublish": "npm run clean && npm run build",
-    "postinstall": "npm run docs:clean && npm run docs:build && open ./docs/index.html",
+    "postinstall": "npm run docs:clean && npm run docs:build",
     "docs:clean": "rimraf docs",
     "docs:build": "esdoc -c esdoc.json"
   },
