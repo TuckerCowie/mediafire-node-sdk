@@ -22,7 +22,7 @@ We're assuming you're using [npm](https://npmjs.com) package manager with a modu
 
 ## Documentation
 
-TODO: Instructions on how to build documentation with ESDoc
+TODO: Instructions on how to build documentation with ESDoc and other docs
 
 ## Examples
 
